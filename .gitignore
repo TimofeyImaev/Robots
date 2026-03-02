@@ -4,3 +4,5 @@
 eclipse.bat
 .idea
 out
+/.gradle
+/build
