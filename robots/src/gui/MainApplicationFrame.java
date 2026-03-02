@@ -3,17 +3,11 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.Locale;
 
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 import log.Logger;
 
@@ -27,6 +21,11 @@ public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
 
     public MainApplicationFrame() {
+        JOptionPane.setDefaultLocale(new Locale("ru", "RU"));
+
+        UIManager.put("OptionPane.yesButtonText", "Да");
+        UIManager.put("OptionPane.noButtonText", "Нет");
+
         //Make the big window be indented 50 pixels from each edge
         //of the screen.
         int inset = 50;
@@ -36,7 +35,6 @@ public class MainApplicationFrame extends JFrame {
                 screenSize.height - inset * 2);
 
         setContentPane(desktopPane);
-
 
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
@@ -108,9 +106,37 @@ public class MainApplicationFrame extends JFrame {
         menu.add(createMenuItem("Системная схема", KeyEvent.VK_S,
                 event -> setLookAndFeel(UIManager.getSystemLookAndFeelClassName())));
 
-        menu.add(createMenuItem("Универсальная схема", KeyEvent.VK_S,
+        menu.add(createMenuItem("Универсальная схема", KeyEvent.VK_K,
                 event -> setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())));
 
+        return menu;
+    }
+
+    private boolean confirmExit() {
+        return JOptionPane.showConfirmDialog(this,
+                "Вы действительно хотите выйти?",
+                "Подтверждение выхода",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+    }
+
+    private JMenuItem createExitMenuItem() {
+        JMenuItem item = createMenuItem("Выход", KeyEvent.VK_X,
+                event -> {
+                    if (confirmExit()) {
+                        System.exit(0);
+                    }
+                });
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
+        return item;
+    }
+
+    private JMenu createFileMenu() {
+        JMenu menu = new JMenu("Файл");
+        menu.setMnemonic(KeyEvent.VK_F);
+        menu.getAccessibleContext().setAccessibleDescription("Операции с файлами и выход");
+
+        menu.add(createExitMenuItem());
         return menu;
     }
 
@@ -128,6 +154,7 @@ public class MainApplicationFrame extends JFrame {
     private JMenuBar generateMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
+        menuBar.add(createFileMenu());
         menuBar.add(createLookAndFeelMenu());
         menuBar.add(createTestMenu());
 
@@ -137,10 +164,18 @@ public class MainApplicationFrame extends JFrame {
     private void setLookAndFeel(String className) {
         try {
             UIManager.setLookAndFeel(className);
+
+            UIManager.put("OptionPane.yesButtonText", "Да");
+            UIManager.put("OptionPane.noButtonText", "Нет");
+
             SwingUtilities.updateComponentTreeUI(this);
-        } catch (ClassNotFoundException | InstantiationException
-                 | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            // just ignore
+        } catch (Exception e) {
+            Logger.debug("ошибка при смене LookAndFeel " + e.getMessage());
+
+            JOptionPane.showMessageDialog(this,
+                    "Не удалось изменить оформление  " + className,
+                    "Ошибка",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }
