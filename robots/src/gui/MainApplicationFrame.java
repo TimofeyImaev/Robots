@@ -1,5 +1,7 @@
 package gui;
 
+import state.AppStateManager;
+
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
@@ -19,6 +21,7 @@ import log.Logger;
  */
 public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private final AppStateManager appStateManager = new AppStateManager();
 
     public MainApplicationFrame() {
         JOptionPane.setDefaultLocale(new Locale("ru", "RU"));
@@ -43,12 +46,17 @@ public class MainApplicationFrame extends JFrame {
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
+        appStateManager.register("logger.", logWindow);
+        appStateManager.register("game.", gameWindow);
+        appStateManager.loadAll();
+
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
                 if (confirmExit()) {
+                    appStateManager.saveAll();
                     System.exit(0);
                 }
             }
@@ -132,6 +140,7 @@ public class MainApplicationFrame extends JFrame {
         JMenuItem item = createMenuItem("Выход", KeyEvent.VK_X,
                 event -> {
                     if (confirmExit()) {
+                        appStateManager.saveAll();
                         System.exit(0);
                     }
                 });
