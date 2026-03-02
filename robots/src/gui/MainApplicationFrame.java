@@ -44,7 +44,15 @@ public class MainApplicationFrame extends JFrame {
         addWindow(gameWindow);
 
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (confirmExit()) {
+                    System.exit(0);
+                }
+            }
+        });
     }
 
     protected LogWindow createLogWindow() {
