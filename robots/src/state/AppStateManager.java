@@ -6,16 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 public class AppStateManager {
-    private static class RegisteredComponent {
-        private final String prefix;
-        private final StatefulComponent component;
-
-        private RegisteredComponent(String prefix, StatefulComponent component) {
-            this.prefix = prefix;
-            this.component = component;
-        }
-    }
-
     private final StateStorage storage;
     private final List<RegisteredComponent> components = new ArrayList<>();
 
@@ -34,16 +24,16 @@ public class AppStateManager {
     public void loadAll() {
         Map<String, String> globalState = storage.load();
         for (RegisteredComponent rc : components) {
-            PrefixedMap prefixedMap = new PrefixedMap(globalState, rc.prefix);
-            rc.component.restoreState(prefixedMap);
+            PrefixedMap prefixedMap = new PrefixedMap(globalState, rc.prefix());
+            rc.component().restoreState(prefixedMap);
         }
     }
 
     public void saveAll() {
         Map<String, String> globalState = new HashMap<>();
         for (RegisteredComponent rc : components) {
-            PrefixedMap prefixedMap = new PrefixedMap(globalState, rc.prefix);
-            rc.component.saveState(prefixedMap);
+            PrefixedMap prefixedMap = new PrefixedMap(globalState, rc.prefix());
+            rc.component().saveState(prefixedMap);
         }
         storage.save(globalState);
     }

@@ -1,7 +1,5 @@
 package gui;
 
-import state.AppStateManager;
-
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
@@ -12,6 +10,7 @@ import java.util.Locale;
 import javax.swing.*;
 
 import log.Logger;
+import state.AppStateManager;
 
 /**
  * Что требуется сделать:
@@ -21,7 +20,9 @@ import log.Logger;
  */
 public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
-    private final AppStateManager appStateManager = new AppStateManager();
+    private final AppStateManager stateManager = new AppStateManager();
+    private final LogWindow logWindow;
+    private final GameWindow gameWindow;
 
     public MainApplicationFrame() {
         JOptionPane.setDefaultLocale(new Locale("ru", "RU"));
@@ -39,26 +40,23 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
-        LogWindow logWindow = createLogWindow();
+        logWindow = createLogWindow();
         addWindow(logWindow);
 
-        GameWindow gameWindow = new GameWindow();
+        gameWindow = new GameWindow();
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
-        appStateManager.register("logger.", logWindow);
-        appStateManager.register("game.", gameWindow);
-        appStateManager.loadAll();
+        stateManager.register("log.", logWindow);
+        stateManager.register("game.", gameWindow);
+        stateManager.loadAll();
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                if (confirmExit()) {
-                    appStateManager.saveAll();
-                    System.exit(0);
-                }
+                handleExit();
             }
         });
     }
@@ -78,35 +76,6 @@ public class MainApplicationFrame extends JFrame {
         frame.setVisible(true);
     }
 
-//    protected JMenuBar createMenuBar() {
-//        JMenuBar menuBar = new JMenuBar();
-// 
-//        //Set up the lone menu.
-//        JMenu menu = new JMenu("Document");
-//        menu.setMnemonic(KeyEvent.VK_D);
-//        menuBar.add(menu);
-// 
-//        //Set up the first menu item.
-//        JMenuItem menuItem = new JMenuItem("New");
-//        menuItem.setMnemonic(KeyEvent.VK_N);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_N, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("new");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-// 
-//        //Set up the second menu item.
-//        menuItem = new JMenuItem("Quit");
-//        menuItem.setMnemonic(KeyEvent.VK_Q);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_Q, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("quit");
-
-    /// /        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-// 
-//        return menuBar;
-//    }
     private JMenuItem createMenuItem(String text, int mnemonic, ActionListener listener) {
         JMenuItem item = new JMenuItem(text, mnemonic);
         item.addActionListener(listener);
@@ -136,14 +105,21 @@ public class MainApplicationFrame extends JFrame {
                 JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
     }
 
+    private void handleExit() {
+        if (!confirmExit()) {
+            return;
+        }
+        try {
+            stateManager.saveAll();
+        } catch (Exception e) {
+            Logger.debug("Ошибка при сохранении состояния окон " + e.getMessage());
+        }
+        System.exit(0);
+    }
+
     private JMenuItem createExitMenuItem() {
         JMenuItem item = createMenuItem("Выход", KeyEvent.VK_X,
-                event -> {
-                    if (confirmExit()) {
-                        appStateManager.saveAll();
-                        System.exit(0);
-                    }
-                });
+                event -> handleExit());
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
         return item;
     }

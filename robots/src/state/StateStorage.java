@@ -46,13 +46,8 @@ public class StateStorage {
         Properties properties = new Properties();
         properties.putAll(state);
 
-        File parent = file.getParentFile();
-        if (parent != null && !parent.exists()) {
-            parent.mkdirs();
-        }
-
         try (OutputStream out = new FileOutputStream(file)) {
-            properties.store(out, "windows");
+            properties.store(out, null);
         } catch (IOException e) {
             Logger.debug("Ошибка при сохранении состояния " + e.getMessage());
         }
