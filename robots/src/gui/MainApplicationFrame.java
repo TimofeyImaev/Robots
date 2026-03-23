@@ -5,12 +5,14 @@ import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.Map;
 import java.util.Locale;
 
 import javax.swing.*;
 
 import log.Logger;
 import state.AppStateManager;
+import state.StatefulComponent;
 
 /**
  * Что требуется сделать:
@@ -18,7 +20,7 @@ import state.AppStateManager;
  * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
  *
  */
-public class MainApplicationFrame extends JFrame {
+public class MainApplicationFrame extends JFrame implements StatefulComponent {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final AppStateManager stateManager = new AppStateManager();
     private final LogWindow logWindow;
@@ -47,6 +49,7 @@ public class MainApplicationFrame extends JFrame {
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
+        stateManager.register("main.", this);
         stateManager.register("log.", logWindow);
         stateManager.register("game.", gameWindow);
         stateManager.loadAll();
@@ -169,6 +172,46 @@ public class MainApplicationFrame extends JFrame {
                     "Не удалось изменить оформление  " + className,
                     "Ошибка",
                     JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public void saveState(Map<String, String> state) {
+        state.put("x", Integer.toString(getX()));
+        state.put("y", Integer.toString(getY()));
+        state.put("width", Integer.toString(getWidth()));
+        state.put("height", Integer.toString(getHeight()));
+        state.put("visible", Boolean.toString(isVisible()));
+
+        state.put("extendedState", Integer.toString(getExtendedState()));
+    }
+
+    @Override
+    public void restoreState(Map<String, String> state) {
+        String extendedState = state.get("extendedState");
+        if(extendedState != null) {
+            setExtendedState(Integer.parseInt(extendedState));
+        }
+        String x = state.get("x");
+        String y = state.get("y");
+        String width = state.get("width");
+        String height = state.get("height");
+
+        String visible = state.get("visible");
+        try {
+            int ix = Integer.parseInt(x);
+            int iy = Integer.parseInt(y);
+            int iw = Integer.parseInt(width);
+            int ih = Integer.parseInt(height);
+            if (iw > 0 && ih > 0) {
+                setBounds(ix, iy, iw, ih);
+            }
+        } catch (Exception e) {
+            Logger.error("Ошибка при восстановлении состояния " + e.getMessage());
+        }
+
+        if (visible != null) {
+            setVisible(Boolean.parseBoolean(visible));
         }
     }
 }
