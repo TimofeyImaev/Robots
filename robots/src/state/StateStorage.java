@@ -1,11 +1,11 @@
 package state;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -13,30 +13,34 @@ import java.util.Properties;
 import log.Logger;
 
 public class StateStorage {
-    private final File file;
+    private final Path file;
 
     public StateStorage() {
-        this(new File(System.getProperty("user.home"), ".myapp/window-state.properties"));
+        this(Path.of(System.getProperty("user.home"), ".myapp", "window-state.properties"));
     }
 
     public StateStorage(File file) {
+        this(file.toPath());
+    }
+
+    public StateStorage(Path file) {
         this.file = file;
     }
 
     public Map<String, String> load() {
         Map<String, String> state = new HashMap<>();
-        if (!file.exists()) {
+        if (!Files.exists(file)) {
             return state;
         }
 
         Properties properties = new Properties();
-        try (InputStream in = new FileInputStream(file)) {
+        try (Reader in = Files.newBufferedReader(file)) {
             properties.load(in);
             for (String name : properties.stringPropertyNames()) {
                 state.put(name, properties.getProperty(name));
             }
         } catch (Exception ignored) {
-            Logger.debug("Ошибка при загрузке состояния " + ignored.getMessage());
+            Logger.debug("ошибка при загрузке" + ignored.getMessage());
         }
 
         return state;
@@ -46,10 +50,20 @@ public class StateStorage {
         Properties properties = new Properties();
         properties.putAll(state);
 
-        try (OutputStream out = new FileOutputStream(file)) {
+        try {
+            Path parent = file.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+        } catch (IOException e) {
+            Logger.debug("ошибка создания папки" + e.getMessage());
+            return;
+        }
+
+        try (Writer out = Files.newBufferedWriter(file)) {
             properties.store(out, null);
         } catch (IOException e) {
-            Logger.debug("Ошибка при сохранении состояния " + e.getMessage());
+            Logger.debug("ошибка при сохранении состояния " + e.getMessage());
         }
     }
 }

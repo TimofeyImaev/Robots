@@ -1,2 +1,5 @@
 package state;
-record RegisteredComponent(String prefix, StatefulComponent component) {}
+
+import java.awt.Component;
+
+record RegisteredComponent(String prefix, Component component) {}

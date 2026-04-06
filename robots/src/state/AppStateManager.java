@@ -1,5 +1,6 @@
 package state;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,23 +18,21 @@ public class AppStateManager {
         this(new StateStorage());
     }
 
-    public void register(String prefix, StatefulComponent component) {
+    public void register(String prefix, Component component) {
         components.add(new RegisteredComponent(prefix, component));
     }
 
     public void loadAll() {
         Map<String, String> globalState = storage.load();
         for (RegisteredComponent rc : components) {
-            PrefixedMap prefixedMap = new PrefixedMap(globalState, rc.prefix());
-            rc.component().restoreState(prefixedMap);
+            WindowStateMapper.restoreWindowState(globalState, rc.prefix(), rc.component());
         }
     }
 
     public void saveAll() {
         Map<String, String> globalState = new HashMap<>();
         for (RegisteredComponent rc : components) {
-            PrefixedMap prefixedMap = new PrefixedMap(globalState, rc.prefix());
-            rc.component().saveState(prefixedMap);
+            WindowStateMapper.saveWindowState(globalState, rc.prefix(), rc.component());
         }
         storage.save(globalState);
     }

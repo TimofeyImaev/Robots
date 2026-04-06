@@ -1,21 +1,17 @@
 package gui;
 
-import state.StatefulComponent;
-
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
-import java.util.Map;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
 import log.LogChangeListener;
 import log.LogEntry;
-import log.Logger;
 import log.LogWindowSource;
 
-public class LogWindow extends JInternalFrame implements LogChangeListener, StatefulComponent
+public class LogWindow extends JInternalFrame implements LogChangeListener
 {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
@@ -52,37 +48,4 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Stat
         EventQueue.invokeLater(this::updateLogContent);
     }
 
-    @Override
-    public void saveState(Map<String, String> state) {
-        state.put("x", Integer.toString(getX()));
-        state.put("y", Integer.toString(getY()));
-        state.put("width", Integer.toString(getWidth()));
-        state.put("height", Integer.toString(getHeight()));
-        state.put("visible", Boolean.toString(isVisible()));
-    }
-
-    @Override
-    public void restoreState(Map<String, String> state) {
-        String x = state.get("x");
-        String y = state.get("y");
-        String width = state.get("width");
-        String height = state.get("height");
-        String visible = state.get("visible");
-
-        try {
-            int ix = Integer.parseInt(x);
-            int iy = Integer.parseInt(y);
-            int iw = Integer.parseInt(width);
-            int ih = Integer.parseInt(height);
-            if (iw > 0 && ih > 0) {
-                setBounds(ix, iy, iw, ih);
-            }
-        } catch (Exception e) {
-            Logger.error("Ошибка при восстановлении состояния лога " + e.getMessage());
-        }
-
-        if (visible != null) {
-            setVisible(Boolean.parseBoolean(visible));
-        }
-    }
 }
