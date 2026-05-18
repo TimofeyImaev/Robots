@@ -21,6 +21,18 @@ public class RobotModel extends Observable {
         return robotPositionY;
     }
 
+    public synchronized double getRobotDirection() {
+        return robotDirection;
+    }
+
+    public synchronized int getTargetPositionX() {
+        return targetPositionX;
+    }
+
+    public synchronized int getTargetPositionY() {
+        return targetPositionY;
+    }
+
     public void setTargetPosition(int x, int y) {
         synchronized (this) {
             targetPositionX = x;
@@ -33,13 +45,12 @@ public class RobotModel extends Observable {
     public void step(double duration) {
         synchronized (this) {
             double dist = distance(targetPositionX, targetPositionY, robotPositionX, robotPositionY);
-            if (dist < 0.5) {
-                return;
+            if (dist >= 0.5) {
+                double velocity = maxVelocity;
+                double angleToTarget = angleTo(robotPositionX, robotPositionY, targetPositionX, targetPositionY);
+                double angularVelocity = computeShortestTurnAngularVelocity(angleToTarget, robotDirection);
+                moveRobot(velocity, angularVelocity, duration);
             }
-            double velocity = maxVelocity;
-            double angleToTarget = angleTo(robotPositionX, robotPositionY, targetPositionX, targetPositionY);
-            double angularVelocity = computeShortestTurnAngularVelocity(angleToTarget, robotDirection);
-            moveRobot(velocity, angularVelocity, duration);
         }
         setChanged();
         notifyObservers();
