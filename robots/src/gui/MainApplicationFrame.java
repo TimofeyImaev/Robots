@@ -10,6 +10,7 @@ import java.util.Locale;
 import javax.swing.*;
 
 import log.Logger;
+import model.RobotModel;
 import state.AppStateManager;
 
 /**
@@ -21,6 +22,7 @@ import state.AppStateManager;
 public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final AppStateManager stateManager = new AppStateManager();
+    private final RobotModel robotModel = new RobotModel();
     private final LogWindow logWindow;
     private final GameWindow gameWindow;
 
@@ -43,13 +45,17 @@ public class MainApplicationFrame extends JFrame {
         logWindow = createLogWindow();
         addWindow(logWindow);
 
-        gameWindow = new GameWindow();
+        gameWindow = new GameWindow(robotModel);
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
+
+        RobotCoordinatesWindow coordinatesWindow = new RobotCoordinatesWindow(robotModel);
+        addWindow(coordinatesWindow);
 
         stateManager.register("main.", this);
         stateManager.register("log.", logWindow);
         stateManager.register("game.", gameWindow);
+        stateManager.register("coords.", coordinatesWindow);
         stateManager.loadAll();
 
         setJMenuBar(generateMenuBar());
