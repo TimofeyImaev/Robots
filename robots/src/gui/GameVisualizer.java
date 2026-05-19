@@ -5,27 +5,27 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.JPanel;
 
 import model.RobotModel;
 
-public class GameVisualizer extends JPanel {
+@SuppressWarnings("deprecation")
+public class GameVisualizer extends JPanel implements Observer {
     private final RobotModel model;
-    private final Timer repaintTimer = new Timer("game redraw", true);
 
     public GameVisualizer(RobotModel model) {
         this.model = model;
-
-        repaintTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                EventQueue.invokeLater(GameVisualizer.this::repaint);
-            }
-        }, 0, 50);
+        this.model.addObserver(this);
         setDoubleBuffered(true);
+        EventQueue.invokeLater(this::repaint);
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        EventQueue.invokeLater(this::repaint);
     }
 
     private static int round(double value) {
