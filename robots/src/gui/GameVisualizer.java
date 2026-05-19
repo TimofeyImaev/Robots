@@ -4,9 +4,6 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,42 +14,18 @@ import model.RobotModel;
 
 public class GameVisualizer extends JPanel {
     private final RobotModel model;
-    private final Timer m_timer = initTimer();
-
-    private static Timer initTimer() {
-        return new Timer("events generator", true);
-    }
+    private final Timer repaintTimer = new Timer("game redraw", true);
 
     public GameVisualizer(RobotModel model) {
         this.model = model;
 
-        m_timer.schedule(new TimerTask() {
+        repaintTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                onRedrawEvent();
+                EventQueue.invokeLater(GameVisualizer.this::repaint);
             }
         }, 0, 50);
-        m_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                model.step(10);
-            }
-        }, 0, 10);
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                setTargetPosition(e.getPoint());
-            }
-        });
         setDoubleBuffered(true);
-    }
-
-    protected void setTargetPosition(Point p) {
-        model.setTargetPosition(p.x, p.y);
-    }
-
-    protected void onRedrawEvent() {
-        EventQueue.invokeLater(this::repaint);
     }
 
     private static int round(double value) {
@@ -92,8 +65,7 @@ public class GameVisualizer extends JPanel {
     }
 
     private void drawTarget(Graphics2D g, int x, int y) {
-        AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
-        g.setTransform(t);
+        g.setTransform(new AffineTransform());
         g.setColor(Color.GREEN);
         fillOval(g, x, y, 5, 5);
         g.setColor(Color.BLACK);

@@ -23,6 +23,7 @@ public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final AppStateManager stateManager = new AppStateManager();
     private final RobotModel robotModel = new RobotModel();
+    private final RobotController robotController = new RobotController(robotModel);
     private final LogWindow logWindow;
     private final GameWindow gameWindow;
 
@@ -46,6 +47,8 @@ public class MainApplicationFrame extends JFrame {
         gameWindow = new GameWindow(robotModel);
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
+        robotController.attachTo(gameWindow.getVisualizer());
+        robotController.start();
 
         RobotCoordinatesWindow coordinatesWindow = new RobotCoordinatesWindow(robotModel);
         addWindow(coordinatesWindow);
